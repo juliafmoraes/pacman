@@ -109,7 +109,40 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visited = set()  # TODO ideia: transformar isso em um hash table de sets pra acelerar busca (pode ser a soma das coordenadas ou a primeira coordenada a chave
+    border = util.PriorityQueue()
+    border_by_cost = dict()
+    # usamos um dicionario para verificar se o filho eh um no que ja se encontra na borda mas possui custo menor que o atual
+
+    start_state = problem.getStartState()
+    path_cost = 0
+    heuristic_cost = heuristic(problem.getStartState(), problem)
+
+    border.push({'state': start_state, 'actions': [], 'path_cost': path_cost}, path_cost + heuristic_cost)
+    border_by_cost[start_state] = path_cost
+
+    while border.count > 0:
+        node = border.pop()
+        visited.add(node['state'])
+        if problem.isGoalState(node['state']):
+            return node['actions']
+        else:
+            for child in problem.getSuccessors(node['state']):
+                child_node = {'state': child[0], 'actions': child[1], 'cost': child[2]}
+                if child_node['state'] not in visited:
+                    child_path_cost = node['path_cost'] + child_node['cost']
+                    child_path = node['actions'] + [child_node['actions']]
+                    if child_node['state'] not in border_by_cost.keys():
+                        # nesse caso o no nao esta nem na borda e nem nos visitados
+                        border.push({'state': child_node['state'], 'actions': child_path, 'path_cost': child_path_cost},
+                                    child_path_cost + heuristic(child_node['state'], problem))
+                        border_by_cost[child_node['state']] = child_path_cost
+                    elif border_by_cost[child_node['state']] > child_path_cost:
+                        # no esta na borda porem com custo mais elevado que o atual
+                        border.update({'state': child_node['state'], 'actions': child_path, 'path_cost': child_path_cost},
+                                      child_path_cost + heuristic(child_node['state'], problem))
+    return RuntimeError
+
 
 
 # Abbreviations
