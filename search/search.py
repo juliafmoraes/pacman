@@ -108,39 +108,67 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    visited = set()  # TODO ideia: transformar isso em um hash table de sets pra acelerar busca (pode ser a soma das coordenadas ou a primeira coordenada a chave
-    border = util.PriorityQueue()
-    border_by_cost = dict()
-    # usamos um dicionario para verificar se o filho eh um no que ja se encontra na borda mas possui custo menor que o atual
+    # hash table para armazenar nos visitados - a chave eh a coordenada do eixo x
+    visited = dict()
 
+    # fila de prioridade para ordenar os nos que devem ser visitados em ordem, conforme o custo de f(n)
+    border = util.PriorityQueue()
+    # usamos um dicionario para verificar se o filho eh um no que ja se encontra na borda mas possui custo menor que
+    # o atual
+    border_by_cost = dict()
+
+    # dados para o no raiz
     start_state = problem.getStartState()
     path_cost = 0
     heuristic_cost = heuristic(problem.getStartState(), problem)
 
+    # organizamos as informacoes de cada no em forma de um dicionairio com 3 atributos:
+        #state: coordenadas do no no tabuleiro
+        #actions: quais foram as direcoes tomadas do no raiz ate o no em questao
+        #path_cost: o custo real do caminho do no raiz ao no em questao
+    # colocamos o primeiro no na fila de prioridade que define a fronteira
     border.push({'state': start_state, 'actions': [], 'path_cost': path_cost}, path_cost + heuristic_cost)
+    # colocamos no dicionario que nos permite verificar facilmente se o no se encontra na fronteira, evita ter que
+    # percorrer a fila de prioridade inteira
     border_by_cost[start_state] = path_cost
 
+    # enquanto a fronteira nao estiver vazia
     while border.count > 0:
         node = border.pop()
-        visited.add(node['state'])
+        # verificamos se o no eh o no meta
         if problem.isGoalState(node['state']):
             return node['actions']
         else:
+            # verificamos se o no ja foi visitado
+            if node['state'][0] in visited: # verifica se a chave existe na hash table
+                # se esta, adicionamos o 'state' do no na lista desta chave
+                visited[node['state'][0]].append(node['state'])
+            else:
+                # senao, criamos uma lista aonde o unico elemento eh o 'state' do no atual
+                visited[node['state'][0]] = [node['state']]
+
+            # para cada filho do no atual, verificamos se ja foi visitado
             for child in problem.getSuccessors(node['state']):
-                child_node = {'state': child[0], 'actions': child[1], 'cost': child[2]}
-                if child_node['state'] not in visited:
+                # criamos um dicionario para o no
+                child_node = {'state': child[0], 'action': child[1], 'cost': child[2]}
+                if child_node['state'][0] not in visited: # se a chave nao esta no dicionario
+                    visited[child_node['state'][0]] = [] # criamos uma lista vazia nessa chave
+                if child_node['state'] not in visited[child_node['state'][0]]: # testa se o no ja foi visitado acessando
+                                                                                # sua chave na hash table
                     child_path_cost = node['path_cost'] + child_node['cost']
-                    child_path = node['actions'] + [child_node['actions']]
-                    if child_node['state'] not in border_by_cost.keys():
+                    child_path = node['actions'] + [child_node['action']]
+                    if child_node['state'] not in border_by_cost.keys(): # se o no nao esta na fronteira
                         # nesse caso o no nao esta nem na borda e nem nos visitados
+                        # adicionamos o no na borda com a lista das acoes e o custo para chegar ate ele
                         border.push({'state': child_node['state'], 'actions': child_path, 'path_cost': child_path_cost},
                                     child_path_cost + heuristic(child_node['state'], problem))
                         border_by_cost[child_node['state']] = child_path_cost
                     elif border_by_cost[child_node['state']] > child_path_cost:
                         # no esta na borda porem com custo mais elevado que o atual
+                        # substituimos pelo caminho de menor custo
                         border.update({'state': child_node['state'], 'actions': child_path, 'path_cost': child_path_cost},
                                       child_path_cost + heuristic(child_node['state'], problem))
+    # caso a fronteira esteja vazia e o no meta nao foi encontrado retornamos um erro
     return RuntimeError
 
 
