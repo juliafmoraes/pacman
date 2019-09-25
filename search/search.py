@@ -132,6 +132,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     # percorrer a fila de prioridade inteira
     border_by_cost[start_state] = path_cost
 
+    # criamos uma lista vazia para a chave do no raiz
+    visited[start_state[0]] = []
     # enquanto a fronteira nao estiver vazia
     while border.count > 0:
         node = border.pop()
@@ -139,13 +141,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         if problem.isGoalState(node['state']):
             return node['actions']
         else:
-            # verificamos se o no ja foi visitado
-            if node['state'][0] in visited: # verifica se a chave existe na hash table
-                # se esta, adicionamos o 'state' do no na lista desta chave
-                visited[node['state'][0]].append(node['state'])
-            else:
-                # senao, criamos uma lista aonde o unico elemento eh o 'state' do no atual
-                visited[node['state'][0]] = [node['state']]
+            # adicionamos o no na lista de visitados (na posicao da sua chave na hash table)
+            visited[node['state'][0]].append(node['state'])
 
             # para cada filho do no atual, verificamos se ja foi visitado
             for child in problem.getSuccessors(node['state']):
