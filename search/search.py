@@ -110,12 +110,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     # hash table para armazenar nos visitados - a chave eh a coordenada do eixo x
     visited = dict()
-
     # fila de prioridade para ordenar os nos que devem ser visitados em ordem, conforme o custo de f(n)
     border = util.PriorityQueue()
-    # usamos um dicionario para verificar se o filho eh um no que ja se encontra na borda mas possui custo menor que
-    # o atual
-    border_by_cost = dict()
 
     # dados para o no raiz
     start_state = problem.getStartState()
